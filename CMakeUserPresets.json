@@ -1,0 +1,9 @@
+{
+    "version": 4,
+    "vendor": {
+        "conan": {}
+    },
+    "include": [
+        "/Users/user/Downloads/jazzrtlite_28/Cloud/restApi/build/CMakePresets.json"
+    ]
+}
