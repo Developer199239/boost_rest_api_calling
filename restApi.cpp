@@ -2,6 +2,7 @@
 #include <string>
 #include <boost/asio.hpp>
 #include <boost/beast.hpp>
+#include <mutex>
 
 namespace asio = boost::asio;
 namespace beast = boost::beast;
@@ -35,6 +36,7 @@ public:
     }
 
     std::string performHttpPost(const std::string& path, const std::string& requestBody) {
+       std::lock_guard<std::mutex> lock(mutex_); // Lock the mutex
         try {
             asio::io_context io_context;
             tcp::resolver resolver(io_context);
@@ -63,6 +65,7 @@ public:
 
 private:
     std::string baseUrl_;
+    std::mutex mutex_; 
 };
 
 int main() {
@@ -71,24 +74,47 @@ int main() {
     std::string baseUrl = "jsonplaceholder.typicode.com";
     std::string path = "/todos/1";
 
+    // try {
+    //     NetworkManager networkManager(baseUrl);
+
+
+    //     std::string response = networkManager.performHttpGet(path);
+    //     std::cout << "Get Response:\n" << response << std::endl;
+
+
+    //     std::cout << "Perform POST request" << std::endl;
+    //         // Perform POST request
+    //         std::string postRequestBody = R"({
+    //         "title": "foo",
+    //         "body": "bar",
+    //         "userId": 1
+    //     })";
+    //     std::string postResponse = networkManager.performHttpPost("/posts", postRequestBody);
+
+    //     std::cout << "Post Response:\n" << postResponse << std::endl;
+    // } catch (std::exception const& e) {
+    //     std::cerr << "Error: " << e.what() << std::endl;
+    //     return 1;
+    // }
+
+
     try {
         NetworkManager networkManager(baseUrl);
 
-
-        std::string response = networkManager.performHttpGet(path);
-        std::cout << "Get Response:\n" << response << std::endl;
-
-
-        std::cout << "Perform POST request" << std::endl;
-            // Perform POST request
+        #pragma omp parallel for
+        for (int i = 0; i < 20; ++i) {
             std::string postRequestBody = R"({
-            "title": "foo",
-            "body": "bar",
-            "userId": 1
-        })";
-        std::string postResponse = networkManager.performHttpPost("/posts", postRequestBody);
+                "title": "foo",
+                "body": "bar",
+                "userId": 1
+            })";
+            std::string response = networkManager.performHttpPost("/posts", postRequestBody);
 
-        std::cout << "Post Response:\n" << postResponse << std::endl;
+            #pragma omp critical
+            {
+                std::cout << "Response from iteration " << i << ":\n" << response << std::endl;
+            }
+        }
     } catch (std::exception const& e) {
         std::cerr << "Error: " << e.what() << std::endl;
         return 1;
