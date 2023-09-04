@@ -1,0 +1,141 @@
+get_openssl_cert_pem_location
+
+on_read Parsing / Validating the following
+
+{
+                /// Validate the RTLiteBufferWithPropertyIdAndAdapterIdPrePended is valid data
+                //added murtuza
+                std::ostringstream _logbuffer;
+                _logbuffer << "on_read Parsing / Validating the following : " << std::endl << RTLiteBufferWithPropertyIdAndAdapterIdPrePended;
+                std::string tmplogstring = _logbuffer.str();
+                LoggingHandlerManager::getInstance().DebugLog(tmplogstring);
+}
+
+
+1->127.0.0.1(serverIp)
+2->2033(port)
+3->100(this client property id)
+4->true(self Generate)
+5->99(self gen adpter id)
+6->1000
+7->true 
+8->88(echo back adapter id)
+9->debug
+10->false 
+11->0 
+12->0
+
+127.0.0.1 2033 100 false 99 20000 false 88 debug false 0 0
+
+====server====
+0.0.0.0 2033 1 true 100 88 20000 true 100 99 debug "" "" "" "" 0 0
+
+1->0.0.0.0 (address)
+2->2033(port)
+3->1(thread)
+4->true(self gen server to client)
+5->100(self gen property id)
+6->88(self gen adapter id)
+7->20000(time)
+8->true(echo back)
+9->100(echo back property id)
+10->99(echo back adater id)
+11->debug
+ "" "" "" "" 0 0
+
+
+With test client->step 3
+Server: 
+0.0.0.0 2033 1 true 100 88 10000 true 100 99 debug \"\" \"\" \"\" \"\" 0 0
+
+RT
+127.0.0.1 2033 100 false 99 1000 false 88 debug false 0 1 3033 77 78
+
+Client
+TestExternalServer 127.0.0.1 3033 1 true debug
+
+With test client->step 4 and 5
+Server: 
+0.0.0.0 2033 1 false 100 88 10000 false 100 99 debug "" "" "" "" 1 0 127.0.0.1 4033 100 77 100 78
+
+RT
+127.0.0.1 2033 100 false 99 10000 false 88 debug false 0 1 3033 77 78
+
+Ex Client
+TestExternalServer 127.0.0.1 3033 1 false debug
+127.0.0.1 3033 5 false 20000 false debug
+ 
+Ex server
+4033 1 false debug
+4033 5 false  20000 false debug
+
+Step 6 (On Linux, run FISI(send_la, command)->RTLite->RTCloudConnector->TestExternalServer)
+
+Only: Fisi->RTLite->RtCloudConnector
+Server: 
+0.0.0.0 2033 1 false 100 88 10000 false 100 99 debug \"\" \"\" \"\" \"\" 0 0
+RT
+127.0.0.1 2033 100 false 99 10000 false 88 debug false 0 1 3033 77 78
+
+Fisi()
+NecBct->client ip: 10.236.51.18 port: 3033
+TestExternalServer 127.0.0.1 3033 1 true debug
+Run: fish wait, send La
+
+Only: Fisi->RTLite->RtCloudConnector->TestExternalServer
+Server: 
+0.0.0.0 2033 1 false 100 88 10000 false 100 99 debug "" "" "" "" 1 0 127.0.0.1 4033 100 77 100 78
+
+RT
+127.0.0.1 2033 100 false 99 10000 false 88 debug false 0 1 3033 77 78
+
+Ex Client
+TestExternalServer 127.0.0.1 3033 1 true debug
+ 
+Ex server
+4033 1 false debug
+
+7. On Linux, run FISI(send_la, command)->RTLite->RTCloudConnector->RT
+
+Server: 
+0.0.0.0 2033 1 false 100 88 10000 false 100 99 debug "" "" "" "" 1 0 127.0.0.1 4033 100 77 100 78
+
+RT Lite
+127.0.0.1 2033 100 false 99 10000 false 88 debug false 0 1 3033 77 78
+
+RT-1000
+Nec-pbx-console->server
+4033 1 false debug
+
+Fisi
+Nec-bct->client 
+127.0.0.1 3033 1 true debug
+
+Fisi->RTLite->RTCloudConnect->working 
+
+
+
+
+0.0.0.0 2033 1 false 100 88 10000 false 100 99 debug "" "" "" "" 1 0 10.236.51.48 4033 100 77 100 78
+
+
+127.0.0.1 2033 100 false 99 10000 false 88 debug false 0 1 3033 77 78
+
+
+
+lsof -i :PORT_NUMBER
+Kill pid
+
+
+3034 -> 100 / 87- > 5034 -> 100 / 78 -> 3034
+
+RTLite 127.0.0.1 2033 100 false 99 1000 false 88 trace false 0 1 3034 88 87 
+
+TestExternalClient 127.0.0.1 3034 5 true 1000 false debug(fisi)
+
+
+RTCloudConnector 0.0.0.0 2033 1 false 100 88 1000 false 100 99 debug "" "" "" "" 1 0 10.236.51.49 5034 100 87 100 88 
+
+TestExternalServer 5034 5 false 1000 true debug(RT)
+
+
